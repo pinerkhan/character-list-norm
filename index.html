@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лист Персонажа - Архей</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --sheet-bg: #2a2a2a;
+            --border-color: #444;
+            --text-color: #e0e0e0;
+            --accent-color: #c9a050;
+            --input-bg: #333;
+            --input-border: #555;
+            --highlight: #4a4a4a;
+            --danger: #a05050;
+            --success: #50a050;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background-color: var(--sheet-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(201, 160, 80, 0.2);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .block {
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 10px;
+            background-color: rgba(0,0,0,0.2);
+        }
+
+        .block-title {
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .field {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 0.9em;
+        }
+
+        .field label {
+            flex: 0 0 140px;
+            color: #aaa;
+        }
+
+        .field input, .field select {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-color);
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            outline: none;
+        }
+
+        .field input:focus, .field select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .avatar-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed var(--border-color);
+            border-radius: 5px;
+            min-height: 200px;
+            background: #222;
+            color: #555;
+            font-style: italic;
+            cursor: pointer;
+            transition: 0.2s;
+            overflow: hidden;
+        }
+
+        .avatar-box:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .avatar-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        .skill-col {
+            display: flex;
+            flex-direction: column;
+        }
+        .skill-col h4 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            border-bottom: 1px solid #444;
+            padding-bottom: 4px;
+        }
+
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .slot {
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+            background: rgba(255,255,255,0.03);
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slot:hover {
+            background: var(--highlight);
+            border-color: var(--accent-color);
+        }
+
+        .slot-label {
+            font-size: 0.7em;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .slot-value {
+            font-size: 0.85em;
+            font-weight: bold;
+            color: #ddd;
+            word-break: break-word;
+        }
+
+        .slot-value.empty {
+            color: #555;
+            font-weight: normal;
+            font-style: italic;
+        }
+
+        /* --- Сопротивления --- */
+        .resistances-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .resistance-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 6px 8px;
+            transition: 0.2s;
+        }
+
+        .resistance-item:hover {
+            border-color: var(--accent-color);
+            background: rgba(201, 160, 80, 0.05);
+        }
+
+        .resistance-icon {
+            font-size: 1.4em;
+            flex: 0 0 28px;
+            text-align: center;
+        }
+
+        .resistance-icon.fire { color: #ff6b35; }
+        .resistance-icon.cold { color: #6bc5ff; }
+        .resistance-icon.electric { color: #ffe066; }
+        .resistance-icon.magic { color: #b57bff; }
+        .resistance-icon.disease { color: #7ba05b; }
+        .resistance-icon.poison { color: #a0ff7b; }
+
+        .resistance-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .resistance-label {
+            font-size: 0.7em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .resistance-input {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-color);
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            width: 100%;
+            outline: none;
+            margin-top: 2px;
+        }
+
+        .resistance-input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .inventory-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 5px;
+            background: #1e1e1e;
+        }
+
+        .inventory-item {
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            border-bottom: 1px solid #333;
+            font-size: 0.9em;
+            background: rgba(255,255,255,0.02);
+            border-radius: 3px;
+            margin-bottom: 4px;
+        }
+
+        .inventory-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .inventory-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .inventory-item-name {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .inventory-item-details {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8em;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        .inventory-item-desc {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 4px;
+            font-style: italic;
+            border-top: 1px dashed #333;
+            padding-top: 4px;
+        }
+
+        .inventory-item button {
+            background: #5a1a1a;
+            color: #ff8888;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 3px 8px;
+            font-size: 0.8em;
+            transition: 0.2s;
+        }
+
+        .inventory-item button:hover {
+            background: #8a2a2a;
+            color: #fff;
+        }
+
+        .inventory-add {
+            display: flex;
+            flex-direction: column;
+            margin-top: 10px;
+            gap: 5px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+
+        .inventory-add-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .inventory-add input {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-color);
+            padding: 6px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .inventory-add input.small {
+            flex: 0 0 80px;
+        }
+
+        .inventory-add button {
+            background: var(--accent-color);
+            color: #111;
+            border: none;
+            border-radius: 3px;
+            padding: 6px 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9em;
+        }
+
+        .inventory-add button:hover {
+            background: #e0b860;
+        }
+
+        .weight-warning {
+            color: var(--danger);
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-top: 5px;
+            min-height: 18px;
+        }
+
+        .weight-info {
+            font-size: 0.85em;
+            color: #aaa;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .weight-info span {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .weight-info .overloaded {
+            color: var(--danger);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--sheet-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-content h3 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .modal-list {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 5px;
+            background: #1e1e1e;
+            margin-bottom: 10px;
+        }
+
+        .modal-list li {
+            padding: 8px 10px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.95em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal-list li:hover {
+            background: var(--highlight);
+            color: var(--accent-color);
+        }
+
+        .modal-list li.empty-msg {
+            cursor: default;
+            color: #555;
+            text-align: center;
+            font-style: italic;
+            justify-content: center;
+        }
+
+        .modal-list li.empty-msg:hover {
+            background: transparent;
+            color: #555;
+        }
+
+        .modal-list li .item-weight {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        .modal-close {
+            background: #444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #666;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .skills-grid, .resistances-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="grid-2">
+        <div class="avatar-box" id="avatarBox" onclick="changeAvatar()">
+            <span>Нажмите, чтобы загрузить</span>
+            <span style="font-size: 0.8em; margin-top: 5px;">или перетащите изображение</span>
+        </div>
+        <div class="block">
+            <div class="block-title">Краткая история персонажа</div>
+            <textarea id="history" rows="7" style="width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-color); padding: 8px; border-radius: 4px; resize: vertical;"></textarea>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="block">
+            <div class="field"><label>Раса:</label> <input type="text" id="race" placeholder="Например: Ливантиец"></div>
+            <div class="field"><label>Пол:</label> <input type="text" id="gender" placeholder="М/Ж"></div>
+            <div class="field"><label>Возраст:</label> <input type="number" id="age" placeholder="25"></div>
+            <div class="field"><label>Камень хранитель:</label> <input type="text" id="stone" placeholder="Название камня"></div>
+            <div class="field"><label>Ветка судьбы:</label> <input type="text" id="fate" placeholder="Название ветки"></div>
+            <div class="field"><label>Эльфиры:</label> <input type="number" id="elfirs" value="0" min="0"></div>
+        </div>
+        <div class="block">
+            <div class="field"><label>Здоровье:</label> <input type="number" id="health" value="100"></div>
+            <div class="field"><label>Магия:</label> <input type="number" id="mana" value="50"></div>
+            <div class="field"><label>Запас сил:</label> <input type="number" id="stamina" value="100"></div>
+            <div class="field"><label>Макс. вес (кг):</label> <input type="number" id="weight" value="50" min="1"></div>
+            <div class="field"><label>Уровень:</label> <input type="number" id="level" value="1"></div>
+            <div class="field"><label>Опыт:</label> <input type="number" id="exp" value="0"></div>
+            <div class="field"><label>Перки:</label> <input type="number" id="perks" value="0"></div>
+        </div>
+    </div>
+
+    <div class="block" style="margin-bottom: 15px;">
+        <div class="block-title">Навыки</div>
+        <div class="skills-grid">
+            <div class="skill-col">
+                <h4>Воин</h4>
+                <div class="field"><label>Тяжелая броня:</label> <input type="number" id="heavy_armor" value="0" min="0" max="10"></div>
+                <div class="field"><label>Двуручное оружие:</label> <input type="number" id="two_handed" value="0" min="0" max="10"></div>
+                <div class="field"><label>Одноручное оружие:</label> <input type="number" id="one_handed" value="0" min="0" max="10"></div>
+                <div class="field"><label>Кузнечное дело:</label> <input type="number" id="smithing" value="0" min="0" max="10"></div>
+                <div class="field"><label>Блокирование:</label> <input type="number" id="block" value="0" min="0" max="10"></div>
+                <div class="field"><label>Стрельба:</label> <input type="number" id="archery" value="0" min="0" max="10"></div>
+            </div>
+            <div class="skill-col">
+                <h4>Маг</h4>
+                <div class="field"><label>Разрушение:</label> <input type="number" id="destruction" value="0" min="0" max="10"></div>
+                <div class="field"><label>Восстановление:</label> <input type="number" id="restoration" value="0" min="0" max="10"></div>
+                <div class="field"><label>Колдовство:</label> <input type="number" id="conjuration" value="0" min="0" max="10"></div>
+                <div class="field"><label>Иллюзия:</label> <input type="number" id="illusion" value="0" min="0" max="10"></div>
+                <div class="field"><label>Изменение:</label> <input type="number" id="alteration" value="0" min="0" max="10"></div>
+                <div class="field"><label>Зачарование:</label> <input type="number" id="enchanting" value="0" min="0" max="10"></div>
+            </div>
+            <div class="skill-col">
+                <h4>Вор</h4>
+                <div class="field"><label>Скрытность:</label> <input type="number" id="sneak" value="0" min="0" max="10"></div>
+                <div class="field"><label>Взлом:</label> <input type="number" id="lockpick" value="0" min="0" max="10"></div>
+                <div class="field"><label>Красноречие:</label> <input type="number" id="speech" value="0" min="0" max="10"></div>
+                <div class="field"><label>Уклонение:</label> <input type="number" id="evasion" value="0" min="0" max="10"></div>
+                <div class="field"><label>Алхимия:</label> <input type="number" id="alchemy" value="0" min="0" max="10"></div>
+                <div class="field"><label>Карманные:</label> <input type="number" id="pickpocket" value="0" min="0" max="10"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="block" style="margin-bottom: 15px;">
+        <div class="block-title">Экипировка</div>
+        <div class="equipment-grid">
+            <div class="slot" data-slot="helmet" onclick="openSlotModal('helmet')">
+                <div class="slot-label">Шлем / Диадема</div>
+                <div class="slot-value empty" id="slot-helmet">Пусто</div>
+            </div>
+            <div class="slot" data-slot="armor" onclick="openSlotModal('armor')">
+                <div class="slot-label">Броня</div>
+                <div class="slot-value empty" id="slot-armor">Пусто</div>
+            </div>
+            <div class="slot" data-slot="gloves" onclick="openSlotModal('gloves')">
+                <div class="slot-label">Перчатки</div>
+                <div class="slot-value empty" id="slot-gloves">Пусто</div>
+            </div>
+            <div class="slot" data-slot="boots" onclick="openSlotModal('boots')">
+                <div class="slot-label">Сапоги</div>
+                <div class="slot-value empty" id="slot-boots">Пусто</div>
+            </div>
+            <div class="slot" data-slot="ring" onclick="openSlotModal('ring')">
+                <div class="slot-label">Кольцо</div>
+                <div class="slot-value empty" id="slot-ring">Пусто</div>
+            </div>
+            <div class="slot" data-slot="amulet" onclick="openSlotModal('amulet')">
+                <div class="slot-label">Ожерелье</div>
+                <div class="slot-value empty" id="slot-amulet">Пусто</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="block">
+            <div class="block-title">Характеристики (макс. 10)</div>
+            <div class="field"><label>Сила:</label> <input type="number" id="strength" value="10" min="0" max="10"></div>
+            <div class="field"><label>Скорость:</label> <input type="number" id="speed" value="10" min="0" max="10"></div>
+            <div class="field"><label>Блокирование:</label> <input type="number" id="stat_block" value="10" min="0" max="10"></div>
+            <div class="field"><label>Ловкость рук:</label> <input type="number" id="dexterity" value="10" min="0" max="10"></div>
+            <div class="field"><label>Красноречие:</label> <input type="number" id="stat_speech" value="10" min="0" max="10"></div>
+            <div class="field"><label>Обаяние:</label> <input type="number" id="charisma" value="10" min="0" max="10"></div>
+            <div class="field"><label>Точность:</label> <input type="number" id="accuracy" value="10" min="0" max="10"></div>
+            <div class="field"><label>Скрытность:</label> <input type="number" id="stat_sneak" value="10" min="0" max="10"></div>
+            <div class="field"><label>Чутье:</label> <input type="number" id="intuition" value="10" min="0" max="10"></div>
+        </div>
+        <div class="block">
+            <div class="block-title">Сопротивления</div>
+            <div class="resistances-grid">
+                <div class="resistance-item">
+                    <div class="resistance-icon fire">🔥</div>
+                    <div class="resistance-info">
+                        <div class="resistance-label">Огонь</div>
+                        <input type="number" class="resistance-input" id="res_fire" value="0" min="0" max="100">
+                    </div>
+                </div>
+                <div class="resistance-item">
+                    <div class="resistance-icon cold">❄️</div>
+                    <div class="resistance-info">
+                        <div class="resistance-label">Холод</div>
+                        <input type="number" class="resistance-input" id="res_cold" value="0" min="0" max="100">
+                    </div>
+                </div>
+                <div class="resistance-item">
+                    <div class="resistance-icon electric">⚡</div>
+                    <div class="resistance-info">
+                        <div class="resistance-label">Электричество</div>
+                        <input type="number" class="resistance-input" id="res_electric" value="0" min="0" max="100">
+                    </div>
+                </div>
+                <div class="resistance-item">
+                    <div class="resistance-icon magic">✨</div>
+                    <div class="resistance-info">
+                        <div class="resistance-label">Магия</div>
+                        <input type="number" class="resistance-input" id="res_magic" value="0" min="0" max="100">
+                    </div>
+                </div>
+                <div class="resistance-item">
+                    <div class="resistance-icon disease">🦠</div>
+                    <div class="resistance-info">
+                        <div class="resistance-label">Болезни</div>
+                        <input type="number" class="resistance-input" id="res_disease" value="0" min="0" max="100">
+                    </div>
+                </div>
+                <div class="resistance-item">
+                    <div class="resistance-icon poison">☠️</div>
+                    <div class="resistance-info">
+                        <div class="resistance-label">Яды</div>
+                        <input type="number" class="resistance-input" id="res_poison" value="0" min="0" max="100">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="block" style="margin-top: 15px;">
+        <div class="block-title">Способности</div>
+        <textarea id="abilities" rows="6" style="width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-color); padding: 8px; border-radius: 4px; resize: vertical;"></textarea>
+    </div>
+
+    <div class="block" style="margin-top: 15px;">
+        <div class="block-title">Инвентарь</div>
+        <ul class="inventory-list" id="inventoryList"></ul>
+        <div class="inventory-add">
+            <div class="inventory-add-row">
+                <input type="text" id="itemName" placeholder="Название предмета..." onkeypress="handleItemInput(event)">
+            </div>
+            <div class="inventory-add-row">
+                <input type="text" id="itemDesc" placeholder="Описание..." onkeypress="handleItemInput(event)">
+            </div>
+            <div class="inventory-add-row">
+                <input type="number" id="itemWeight" class="small" placeholder="Вес" step="0.1" min="0" onkeypress="handleItemInput(event)">
+                <input type="number" id="itemPrice" class="small" placeholder="Цена" step="1" min="0" onkeypress="handleItemInput(event)">
+                <button type="button" onclick="addItem()">Добавить</button>
+            </div>
+            <div class="weight-warning" id="weightWarning"></div>
+            <div class="weight-info" id="weightInfo">
+                Вес: <span id="currentWeight">0</span> / <span id="maxWeight">50</span> кг
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="slotModal">
+    <div class="modal-content">
+        <h3 id="modalTitle">Выберите предмет</h3>
+        <ul class="modal-list" id="modalList"></ul>
+        <button class="modal-close" onclick="closeModal()">Отмена</button>
+    </div>
+</div>
+
+<script>
+    let inventory = [];
+    let equipment = {
+        helmet: null,
+        armor: null,
+        gloves: null,
+        boots: null,
+        ring: null,
+        amulet: null
+    };
+    let currentSlot = null;
+    let avatarData = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+        renderInventory();
+        renderEquipment();
+        setupAutoSave();
+        updateWeightInfo();
+        enforceMaxStats();
+    });
+
+    // --- Ограничение характеристик до 10 ---
+    function enforceMaxStats() {
+        const statIds = ['strength', 'speed', 'stat_block', 'dexterity', 'stat_speech', 'charisma', 'accuracy', 'stat_sneak', 'intuition'];
+        statIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => {
+                    let val = parseInt(el.value);
+                    if (isNaN(val) || val < 0) el.value = 0;
+                    if (val > 10) el.value = 10;
+                    saveData();
+                });
+                el.addEventListener('blur', () => {
+                    let val = parseInt(el.value);
+                    if (isNaN(val) || val < 0) el.value = 0;
+                    if (val > 10) el.value = 10;
+                    saveData();
+                });
+            }
+        });
+    }
+
+    function setupAutoSave() {
+        const inputs = document.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('input', saveData);
+            input.addEventListener('change', saveData);
+        });
+    }
+
+    function saveData() {
+        const data = {
+            inventory: inventory,
+            equipment: equipment,
+            avatar: avatarData,
+            fields: {}
+        };
+
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            if (input.id) {
+                data.fields[input.id] = input.value;
+            }
+        });
+
+        localStorage.setItem('arhey_character_sheet', JSON.stringify(data));
+    }
+
+    function loadData() {
+        const saved = localStorage.getItem('arhey_character_sheet');
+        if (!saved) return;
+
+        try {
+            const data = JSON.parse(saved);
+            
+            if (data.inventory) inventory = data.inventory;
+            if (data.equipment) equipment = data.equipment;
+
+            if (data.avatar) {
+                avatarData = data.avatar;
+                const avatarBox = document.getElementById('avatarBox');
+                avatarBox.innerHTML = `<img src="${avatarData}" alt="Аватар">`;
+            }
+
+            if (data.fields) {
+                for (const [id, value] of Object.entries(data.fields)) {
+                    const el = document.getElementById(id);
+                    if (el) el.value = value;
+                }
+            }
+        } catch (e) {
+            console.error('Ошибка загрузки данных:', e);
+        }
+    }
+
+    function changeAvatar() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                avatarData = ev.target.result;
+                const avatarBox = document.getElementById('avatarBox');
+                avatarBox.innerHTML = `<img src="${avatarData}" alt="Аватар">`;
+                saveData();
+            };
+            reader.readAsDataURL(file);
+        };
+        input.click();
+    }
+
+    const avatarBox = document.getElementById('avatarBox');
+    avatarBox.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        avatarBox.style.borderColor = 'var(--accent-color)';
+    });
+    avatarBox.addEventListener('dragleave', () => {
+        avatarBox.style.borderColor = 'var(--border-color)';
+    });
+    avatarBox.addEventListener('drop', (e) => {
+        e.preventDefault();
+        avatarBox.style.borderColor = 'var(--border-color)';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                avatarData = ev.target.result;
+                avatarBox.innerHTML = `<img src="${avatarData}" alt="Аватар">`;
+                saveData();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function renderInventory() {
+        const list = document.getElementById('inventoryList');
+        list.innerHTML = '';
+
+        if (inventory.length === 0) {
+            list.innerHTML = '<li style="color: #555; text-align: center; padding: 10px; font-style: italic;">Инвентарь пуст</li>';
+            return;
+        }
+
+        inventory.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'inventory-item';
+            
+            let detailsHtml = '';
+            if (item.weight || item.price) {
+                detailsHtml = `<div class="inventory-item-details">
+                    ${item.weight ? `<span>Вес: ${item.weight} кг</span>` : ''}
+                    ${item.price ? `<span>Цена: ${item.price} эльфиров</span>` : ''}
+                </div>`;
+            }
+            
+            let descHtml = '';
+            if (item.desc) {
+                descHtml = `<div class="inventory-item-desc">${item.desc}</div>`;
+            }
+
+            li.innerHTML = `
+                <div class="inventory-item-header">
+                    <span class="inventory-item-name">${item.name}</span>
+                    <button onclick="removeItem(${index})">✕</button>
+                </div>
+                ${detailsHtml}
+                ${descHtml}
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function addItem() {
+        const nameInput = document.getElementById('itemName');
+        const descInput = document.getElementById('itemDesc');
+        const weightInput = document.getElementById('itemWeight');
+        const priceInput = document.getElementById('itemPrice');
+        const warning = document.getElementById('weightWarning');
+
+        const name = nameInput.value.trim();
+        if (name === '') {
+            warning.textContent = 'Введите название предмета!';
+            return;
+        }
+
+        const desc = descInput.value.trim();
+        const weight = parseFloat(weightInput.value) || 0;
+        const price = parseFloat(priceInput.value) || 0;
+
+        const maxWeight = parseFloat(document.getElementById('weight').value) || 50;
+        const currentWeight = getTotalWeight();
+        const newTotal = currentWeight + weight;
+
+        if (newTotal > maxWeight) {
+            warning.textContent = `Перегруз! Макс. вес: ${maxWeight} кг. Текущий: ${currentWeight.toFixed(1)} кг. Добавление ${weight} кг превысит лимит.`;
+            return;
+        }
+
+        warning.textContent = '';
+
+        const newItem = {
+            name: name,
+            desc: desc,
+            weight: weight,
+            price: price
+        };
+
+        inventory.push(newItem
